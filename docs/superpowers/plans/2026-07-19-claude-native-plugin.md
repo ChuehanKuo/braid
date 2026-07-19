@@ -25,6 +25,7 @@
 ## Task 2: Preserve the research and design history
 
 **Files:**
+
 - Modify: `docs/agent-compatibility.md`
 - Add: `docs/superpowers/specs/2026-07-19-claude-native-plugin-design.md`
 - Add: `docs/superpowers/plans/2026-07-19-claude-native-plugin.md`
@@ -37,6 +38,7 @@
 ## Task 3: Add the Claude host protocol using TDD
 
 **Files:**
+
 - Add: `packages/guard/src/claude/contracts.ts`
 - Add: `packages/guard/src/claude/protocol.ts`
 - Add: `packages/guard/src/claude/capabilities.ts`
@@ -57,6 +59,7 @@
 ## Task 4: Implement deterministic duplicate suppression using TDD
 
 **Files:**
+
 - Add: `packages/guard/src/claude/duplicate-store.ts`
 - Add: `packages/guard/test/claude-duplicate-store.test.ts`
 - Modify: `packages/guard/src/claude/protocol.ts`
@@ -71,6 +74,7 @@
 ## Task 5: Add the ownership-safe manual Claude installer using TDD
 
 **Files:**
+
 - Add: `packages/guard/src/claude/installer.ts`
 - Add: `packages/guard/test/claude-installer.test.ts`
 - Modify: `apps/cli/src/commands/growth.ts`
@@ -86,6 +90,7 @@
 ## Task 6: Package and validate the native marketplace plugin
 
 **Files:**
+
 - Add: `.claude-plugin/marketplace.json`
 - Add: `plugins/braid/.claude-plugin/plugin.json`
 - Add: `plugins/braid/hooks/hooks.json`
@@ -108,6 +113,7 @@
 ## Task 7: Complete status, documentation, and the reasoning artifact
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `docs/agent-compatibility.md`
 - Modify: `docs/growth-mode.md`
@@ -139,4 +145,3 @@
 4. If supported, test remote marketplace installation from the pushed branch/ref in isolated configuration; otherwise record `pending-after-merge-remote-marketplace-smoke`.
 5. Open a PR against `ting10688/braid:research/v0.6-agent-gates` with the required summary, verified lifecycle, tests, scope, duplicate behavior, and limitations.
 6. Verify the PR URL/base/head and report branch, commit SHAs, exact test evidence, and cleanup status.
-

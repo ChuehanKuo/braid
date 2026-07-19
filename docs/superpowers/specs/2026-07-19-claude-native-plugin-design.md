@@ -26,12 +26,12 @@ The current Codex invocation remains valid for backward compatibility. Each hook
 
 The adapter supports only the events needed by Growth Mode:
 
-| Claude event | Growth Mode operation | Response |
-|---|---|---|
-| `SessionStart` | Initialize or recover the session baseline | One concise activation context when active; otherwise silent |
-| `UserPromptSubmit` | Refresh prompt-cycle context | Silent unless actionable host context is required |
-| Relevant `PostToolUse` | Run the cached incremental comparison | Concise findings when required; otherwise silent |
-| `Stop` | Run the authoritative final scan | Claude's exact allow/block JSON contract with actionable repair feedback |
+| Claude event           | Growth Mode operation                      | Response                                                                 |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| `SessionStart`         | Initialize or recover the session baseline | One concise activation context when active; otherwise silent             |
+| `UserPromptSubmit`     | Refresh prompt-cycle context               | Silent unless actionable host context is required                        |
+| Relevant `PostToolUse` | Run the cached incremental comparison      | Concise findings when required; otherwise silent                         |
+| `Stop`                 | Run the authoritative final scan           | Claude's exact allow/block JSON contract with actionable repair feedback |
 
 Irrelevant tools do not trigger architecture work. The shared engine remains responsible for fingerprints, bounded repeated blocking, recovery, and final allow decisions.
 

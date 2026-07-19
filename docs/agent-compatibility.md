@@ -1,7 +1,7 @@
 # Agent platform compatibility research
 
-Research date: 2026-07-17 (Asia/Taipei)
-Host: Darwin 27.0, arm64
+Research date: 2026-07-19 (Asia/Taipei)
+Latest research host: Darwin 25.5.0, arm64
 
 This document is the Braid v0.6.0 official-contract research gate. Production
 implementation remains paused. A platform is not eligible for production
@@ -11,30 +11,30 @@ Executable discovery or schema parsing alone is insufficient.
 
 ## Gate result
 
-| Platform              | Tested CLI | Contract   | Live final-stop                          | Growth classification |
-| --------------------- | ---------- | ---------- | ---------------------------------------- | --------------------- |
-| OpenAI Codex          | 0.144.5    | documented | block → additional turn → pass           | `verified`            |
-| Anthropic Claude Code | 2.1.212    | documented | not reached: CLI not authenticated       | `blocked`             |
-| Google Gemini CLI     | 0.40.0     | documented | block → additional turn → pass           | `verified`            |
-| GitHub Copilot CLI    | 1.0.71     | documented | not reached: policy authorization denied | `blocked`             |
+| Platform              | Tested CLI       | Contract   | Live final-stop                          | Growth classification |
+| --------------------- | ---------------- | ---------- | ---------------------------------------- | --------------------- |
+| OpenAI Codex          | 0.144.5          | documented | block → additional turn → pass           | `verified`            |
+| Anthropic Claude Code | 2.1.212, 2.1.215 | documented | block → additional turn → repair → pass  | `verified`            |
+| Google Gemini CLI     | 0.40.0           | documented | block → additional turn → pass           | `verified`            |
+| GitHub Copilot CLI    | 1.0.71           | documented | not reached: policy authorization denied | `blocked`             |
 
-The Claude and Copilot priority gates are not closed. A reduced
-Codex-and-Gemini-only v0.6.0 is not authorized by this result.
+The Claude priority gate is closed. The Copilot priority gate remains blocked,
+so the full four-platform v0.6.0 matrix is not yet authorized.
 
 ## Preflight
 
 No account names, credentials, tokens, prompt text, transcripts, session
 databases, or unredacted home paths were retained.
 
-| Field                    | Claude Code                                                                                                     | GitHub Copilot CLI                                                                                                                                          |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Executable               | `/Users/<user>/.local/bin/claude` → native version directory                                                    | `/opt/homebrew/bin/copilot` → Homebrew Cask directory                                                                                                       |
-| Exact version            | `2.1.212 (Claude Code)`, commit `8b2783a8f907`                                                                  | `GitHub Copilot CLI 1.0.71`                                                                                                                                 |
-| Installation channel     | native installer, `latest` update channel                                                                       | Homebrew Cask                                                                                                                                               |
-| Doctor/version result    | native install healthy; `darwin-arm64`                                                                          | version command succeeded and reported current                                                                                                              |
-| Authentication readiness | not ready: `loggedIn:false`, `authMethod:none`; no API-key, Bedrock, Vertex, or Foundry provider was configured | credential reached a model request, but runtime readiness is `unknown`: the request was denied because an enterprise or organization policy must be enabled |
-| Relevant help reviewed   | `--setting-sources`, `--settings`, `--resume`, `--continue`, `--worktree`, `-p`, hook event filtering           | `COPILOT_HOME`, `--resume`, `--continue`, `-p`, `-i`, scoped allow/deny tool flags, `--no-remote`, `--no-remote-export`, `--no-auto-update`, `--log-dir`    |
-| Unsafe options used      | none                                                                                                            | none                                                                                                                                                        |
+| Field                    | Claude Code                                                                                              | GitHub Copilot CLI                                                                                                                                          |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Executable               | `/Users/<user>/.local/bin/claude` → native version directory                                             | `/opt/homebrew/bin/copilot` → Homebrew Cask directory                                                                                                       |
+| Exact version            | `2.1.212` settings-hook probe; `2.1.215` native-plugin gate                                              | `GitHub Copilot CLI 1.0.71`                                                                                                                                 |
+| Installation channel     | native installer, `latest` update channel                                                                | Homebrew Cask                                                                                                                                               |
+| Doctor/version result    | native install healthy; `darwin-arm64`                                                                   | version command succeeded and reported current                                                                                                              |
+| Authentication readiness | ready: `loggedIn:true`, authenticated prompt succeeded through `claude.ai`; no account data was retained | credential reached a model request, but runtime readiness is `unknown`: the request was denied because an enterprise or organization policy must be enabled |
+| Relevant help reviewed   | `--setting-sources`, `--settings`, `--resume`, `--continue`, `--worktree`, `-p`, hook event filtering    | `COPILOT_HOME`, `--resume`, `--continue`, `-p`, `-i`, scoped allow/deny tool flags, `--no-remote`, `--no-remote-export`, `--no-auto-update`, `--log-dir`    |
+| Unsafe options used      | none                                                                                                     | none                                                                                                                                                        |
 
 `claude doctor`, `claude --help`, `copilot --help`, `copilot help`, and
 `copilot help config` were reviewed. No login command, broad permission flag,
@@ -46,25 +46,25 @@ research harness.
 Codex and Gemini rows carry forward the earlier isolated contract probes
 recorded by this document. This task re-ran only the Claude and Copilot gates.
 
-| Field                      | Codex                                                                  | Claude Code                                                         | Gemini CLI                                     | Copilot CLI                                                                  |
-| -------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| CLI version tested         | 0.144.5                                                                | 2.1.212                                                             | 0.40.0                                         | 1.0.71                                                                       |
-| Official source            | yes                                                                    | yes                                                                 | yes                                            | yes                                                                          |
-| Executable and help probe  | yes                                                                    | yes                                                                 | yes                                            | yes                                                                          |
-| Local live hook probe      | yes                                                                    | no; auth rejected before hooks                                      | yes                                            | config source only; lifecycle not reached                                    |
-| Config path                | `.codex/hooks.json`                                                    | `.claude/settings.local.json`                                       | `.gemini/settings.json`                        | `.github/copilot/settings.local.json`                                        |
-| Local-only path            | no                                                                     | yes                                                                 | no                                             | yes                                                                          |
-| Session event              | `SessionStart`                                                         | `SessionStart`                                                      | `SessionStart`                                 | `sessionStart`                                                               |
-| Prompt event               | `UserPromptSubmit`                                                     | `UserPromptSubmit`                                                  | `BeforeAgent`                                  | `userPromptSubmitted`                                                        |
-| Mutation event             | `PostToolUse`                                                          | `PostToolUse`                                                       | `AfterTool`                                    | `postToolUse`                                                                |
-| Final-stop event           | `Stop`                                                                 | `Stop`                                                              | `AfterAgent`                                   | `agentStop`                                                                  |
-| Final-stop blocking proven | yes                                                                    | no                                                                  | yes                                            | no                                                                           |
-| Additional turn proven     | yes                                                                    | no                                                                  | yes                                            | no                                                                           |
-| Repair-to-pass proven      | yes                                                                    | no                                                                  | yes                                            | no                                                                           |
-| Worktree tested            | no recorded live result                                                | config discovery only; no live event                                | no recorded live result                        | no                                                                           |
-| Ownership strategy         | documented                                                             | documented below                                                    | documented                                     | documented below                                                             |
-| Known limitations          | shell mutation interception is incomplete; final scan is authoritative | authentication, live errors, and worktree lifecycle remain untested | trust and cumulative retry output require care | entitlement, live lifecycle, repeated blocking, and worktree remain untested |
-| Final classification       | `verified`                                                             | `blocked`                                                           | `verified`                                     | `blocked`                                                                    |
+| Field                      | Codex                                                                  | Claude Code                                               | Gemini CLI                                     | Copilot CLI                                                                  |
+| -------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| CLI version tested         | 0.144.5                                                                | 2.1.212 and 2.1.215                                       | 0.40.0                                         | 1.0.71                                                                       |
+| Official source            | yes                                                                    | yes                                                       | yes                                            | yes                                                                          |
+| Executable and help probe  | yes                                                                    | yes                                                       | yes                                            | yes                                                                          |
+| Local live hook probe      | yes                                                                    | yes; isolated settings and native-plugin lifecycle probes | yes                                            | config source only; lifecycle not reached                                    |
+| Config path                | `.codex/hooks.json`                                                    | `.claude/settings.local.json`                             | `.gemini/settings.json`                        | `.github/copilot/settings.local.json`                                        |
+| Local-only path            | no                                                                     | yes                                                       | no                                             | yes                                                                          |
+| Session event              | `SessionStart`                                                         | `SessionStart`                                            | `SessionStart`                                 | `sessionStart`                                                               |
+| Prompt event               | `UserPromptSubmit`                                                     | `UserPromptSubmit`                                        | `BeforeAgent`                                  | `userPromptSubmitted`                                                        |
+| Mutation event             | `PostToolUse`                                                          | `PostToolUse`                                             | `AfterTool`                                    | `postToolUse`                                                                |
+| Final-stop event           | `Stop`                                                                 | `Stop`                                                    | `AfterAgent`                                   | `agentStop`                                                                  |
+| Final-stop blocking proven | yes                                                                    | yes                                                       | yes                                            | no                                                                           |
+| Additional turn proven     | yes                                                                    | yes                                                       | yes                                            | no                                                                           |
+| Repair-to-pass proven      | yes                                                                    | yes                                                       | yes                                            | no                                                                           |
+| Worktree tested            | no recorded live result                                                | yes; main-checkout local config, linked-worktree hook cwd | no recorded live result                        | no                                                                           |
+| Ownership strategy         | documented                                                             | documented below                                          | documented                                     | documented below                                                             |
+| Known limitations          | shell mutation interception is incomplete; final scan is authoritative | `-p` only; native plugin verified only on 2.1.215         | trust and cumulative retry output require care | entitlement, live lifecycle, repeated blocking, and worktree remain untested |
+| Final classification       | `verified`                                                             | `verified`                                                | `verified`                                     | `blocked`                                                                    |
 
 No minimum supported version is inferred merely from the installed version.
 
@@ -80,13 +80,15 @@ Official sources: [hooks reference](https://code.claude.com/docs/en/hooks),
 
 - Project hooks may be stored in `.claude/settings.json` (committable) or
   `.claude/settings.local.json` (single-project and local-only). Braid should
-  use the latter.
+  use the latter. In 2.1.211 and later, Claude resolves the local file through
+  linked worktrees to the main checkout, so one repository-root file applies
+  to all of that repository's worktrees.
 - `/hooks` is the native read-only inspection surface. It labels
   `.claude/settings.local.json` handlers as `Local` and displays their source
   file. Direct settings edits are normally picked up by the file watcher.
-- Project hooks require workspace trust and may be disabled by managed hook
-  policy. Braid must inspect and report these states, never grant trust or
-  change policy.
+- Interactive project hooks require workspace trust and may be disabled by
+  managed hook policy. Non-interactive `-p` skips the trust dialog. Braid must
+  inspect and report these states, never grant trust or change policy.
 - Command hooks receive one JSON object on stdin. Common fields include
   `session_id`, `transcript_path`, `cwd`, `permission_mode`, and
   `hook_event_name`. Braid must ignore and never persist prompts, transcript
@@ -107,55 +109,98 @@ fingerprint-based finite policy. Exit 2 plus stderr also blocks Stop; other
 nonzero exits are fail-open for most events.
 
 Command-hook timeout defaults to 600 seconds, except `UserPromptSubmit`, whose
-default is 30 seconds. The official reference does not establish the tested
-2.1.212 Stop outcome for malformed stdout or command timeout strongly enough
-to replace a live probe; those two final-stop cases remain unknown. Unknown
-additive settings/output fields are likewise not a production guarantee, so a
-Braid editor must preserve them without depending on them.
+default is 30 seconds. Unknown additive settings/output fields are not a
+production guarantee, so a Braid editor must preserve them without depending
+on them.
 
 On resume, `SessionStart` fires again with `source: "resume"`; previously
 injected mid-session context is replayed rather than re-running historical
-hooks. Worktree use remains subject to project trust. These documented claims
-were not promoted to live evidence.
+hooks. These documented claims were not promoted to live evidence.
 
 ### Live probe result
 
-The disposable-repository probe used a bounded redacting command hook, no
-network access, no application-source mutation, and no unsafe permission flag.
-The result was deterministic:
+The 2026-07-18 probe used Claude Code 2.1.212 in disposable Git repositories,
+selected only the `local` configurable settings source, disabled session
+persistence, and bounded turns and spend. The CLI reported authenticated
+readiness, and a tool-free prompt completed successfully. No account name,
+session ID, prompt, assistant response, transcript path, or raw transcript was
+retained.
 
-1. `claude auth status --json` returned a non-ready state.
-2. A minimal `claude -p` exited 1 with `Not logged in`.
-3. Hook invocation count stayed zero; authentication failed before
-   `SessionStart`.
+The deterministic repair loop established the complete Growth requirement:
 
-Consequently none of the following were live-proven: new/resumed
-`SessionStart`, prompt cardinality, Write/Edit/Bash `PostToolUse`, Stop block,
-an additional turn, repair-to-pass, repeated-block finiteness, `/hooks` source
-display, malformed hook stdout, nonzero hook exits, hook timeout, or live
-worktree behavior.
+1. `UserPromptSubmit` fired, then a successful `Write` created an artifact
+   whose complete value was `INVALID`.
+2. The first `Stop` fired with `stop_hook_active: false`; the hook's validator
+   observed `INVALID` and returned `decision: "block"` with an exact repair.
+3. Claude took another model/tool turn and rewrote the artifact to `VALID`.
+   This intervening mutation, matching only the hook's feedback, proves the
+   blocking reason reached the agent without retaining the transcript.
+4. A second `Stop` fired with `stop_hook_active: true`; validation passed, the
+   hook returned `{}`, `SessionEnd` fired, and the process exited 0 with a
+   successful result after four agentic turns.
 
-The limited offline/configuration observations were:
+The bounded-repeat probe blocked exactly twice. Its event order was initial
+`Write` → Stop 1 → `Edit` → Stop 2 → `Edit` → Stop 3. Stops 2 and 3 both set
+`stop_hook_active: true`; the artifact recorded the two requested continuation
+markers, the third Stop allowed completion, and the process exited 0 after six
+agentic turns. No infinite loop occurred.
 
-- `claude doctor` recognized valid `.claude/settings.local.json` in both a
-  normal disposable checkout and a linked disposable worktree.
-- With malformed settings, doctor named the exact disposable settings file;
-  the authenticated lifecycle was still unreachable.
-- `~/.claude/settings.json` remained byte-for-byte unchanged.
-- Starting `claude -p` caused Claude's own `~/.claude.json` application-state
-  file to change size from 524 to 976 bytes. Its contents were not inspected or
-  restored. Although this was not a hook-settings change, it means the stricter
-  no-user-level-state-mutation criterion was not met; probing stopped
-  immediately.
+The separate negative probes each invoked one Stop:
 
-Classification: `blocked`.
+| Case                            | Observed 2.1.212 result                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| malformed stdout                | ignored for decision control; one-turn process exited 0 successfully         |
+| 2-second hook, 1-second timeout | timed-out decision did not block; one-turn process exited 0 successfully     |
+| exit 0 with no stdout           | allowed completion                                                           |
+| exit 1 with stderr              | allowed completion                                                           |
+| validation already passing      | first Stop allowed completion; no continuation                               |
+| malformed local settings        | `claude doctor` reported invalid JSON; `-p` ignored the file and ran no hook |
 
-Smallest remaining test: make Claude Code authentication ready without placing
-credentials in repository files, isolate CLI state, then run one disposable
-interactive sequence that exercises all four command events, blocks exactly
-one new architecture regression at Stop, observes the additional turn and
-`stop_hook_active`, repairs the regression, passes the next Stop, repeats in a
-linked worktree, and runs malformed/nonzero/timeout variants.
+In the `-p` lifecycle runs that configured them, `UserPromptSubmit`, tool
+events, `Stop`, and `SessionEnd` fired, but `SessionStart` did not. Supplying
+the same settings file explicitly with `--settings` did not change that
+result. This is observed print-mode behavior, not a claim about interactive
+sessions. Interactive mode and resume remain untested because they would
+retain a transcript or trust state outside the disposable no-persistence
+boundary.
+
+The linked-worktree probe placed `.claude/settings.local.json` only in the main
+checkout. Claude loaded it while launched from the linked worktree; Stop and
+SessionEnd ran with the linked worktree as `cwd`, and no evidence file appeared
+in the main checkout. This confirms the documented repository-root discovery
+and worktree-local execution behavior for 2.1.212.
+
+Classification: `verified` for Claude Code 2.1.212 on Darwin arm64,
+non-interactive `-p`, repository-local command hooks. This does not establish
+interactive, resumed-session, other-version, or other-host equivalence.
+
+### Native-plugin gate
+
+Claude Code 2.1.215 was then tested through the official `--plugin-dir`
+development surface with an Anthropic-validated disposable plugin. The CLI
+reported four discovered hooks. An authenticated, non-persistent Sonnet run
+produced this redacted order:
+
+1. `SessionStart` with `source: startup`;
+2. `UserPromptSubmit`;
+3. `PostToolUse` for `Write`;
+4. `Stop` with `stop_hook_active: false`, which blocked on the controlled
+   `INVALID` artifact;
+5. an additional `PostToolUse` for `Write`, which repaired it to `VALID`;
+6. `Stop` with `stop_hook_active: true`, which allowed completion.
+
+The process exited 0. The native plugin's temporary cache was isolated. Claude
+Code 2.1.215 required a per-plugin data directory before executing command
+hooks, so the probe created one exact probe-owned directory, verified that it
+did not pre-exist, and removed it afterward. Hashes of the user settings,
+installed-plugin registry, and marketplace registry were unchanged. No raw
+payload, prompt, response, transcript, session identifier, or authentication
+material was retained.
+
+Classification: `verified` for Claude Code 2.1.215 on Darwin arm64,
+non-interactive `-p`, native development plugin hooks. Production support must
+remain scoped to this exact Claude Code version until another version completes
+the same gate.
 
 ## GitHub Copilot CLI
 
@@ -312,14 +357,15 @@ exact owned entries without changing folder trust.
 
 ## Contract fixtures
 
-No Claude or Copilot contract fixture was captured. Both CLIs failed before a
-usable lifecycle event, so committing a payload copied from documentation or
-manually invoking a probe script would be fabricated evidence.
+No Claude or Copilot contract fixture was committed. Claude's live evidence is
+recorded above as a minimal redacted event sequence rather than a native input
+payload because this task authorized only this documentation change. Copilot
+still failed before a usable lifecycle event.
 
-| Platform            | Required live fixtures                                                                           | Captured | Reason                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------ | -------- | ----------------------------------------------------------- |
-| Claude Code 2.1.212 | `SessionStart`, `UserPromptSubmit`, Write/Bash `PostToolUse`, Stop pass/block/repeated           | 0        | authentication rejected before `SessionStart`               |
-| Copilot CLI 1.0.71  | `sessionStart`, `userPromptSubmitted`, file/shell `postToolUse`, `agentStop` pass/block/repeated | 0        | policy authorization denied before a usable agent lifecycle |
+| Platform            | Required live fixtures                                                                           | Captured | Reason                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------ | -------- | ---------------------------------------------------------------- |
+| Claude Code 2.1.212 | `UserPromptSubmit`, Write/Edit `PostToolUse`, Stop pass/block/repeated                           | 0        | live sequence documented; native payloads kept out of repository |
+| Copilot CLI 1.0.71  | `sessionStart`, `userPromptSubmitted`, file/shell `postToolUse`, `agentStop` pass/block/repeated | 0        | policy authorization denied before a usable agent lifecycle      |
 
 Private disposable probe material was not committed. A future fixture must
 carry platform, exact CLI version, capture date, official event name, and a
@@ -348,8 +394,10 @@ require a new Copilot session rather than assuming hot reload.
 Use the existing Codex installer pattern rather than a new configuration
 framework:
 
-1. Resolve the current Git worktree root; reject a config symlink or resolved
-   path outside it. Each worktree owns its own ignored local settings file.
+1. Resolve the current Git worktree and common repository roots; reject a
+   config symlink or resolved path outside the provider's documented root.
+   Claude 2.1.211+ uses one ignored main-checkout local settings file across
+   worktrees, while Copilot retains the worktree-local recommendation.
 2. Parse with a comment-preserving JSONC editor and validate only the
    containers Braid touches. Malformed input or ambiguous duplicate touched
    keys is a no-write error. Preserve comments, trailing commas, unknown keys,
@@ -378,22 +426,22 @@ or unrelated native settings are owned by Braid.
 
 ## Recommended v0.6.0 matrix
 
-This is the exact evidence-backed matrix now. It is not the preferred release
-matrix, because the two priority Growth rows remain blocked.
+This is the exact evidence-backed matrix now. The Copilot priority Growth row
+remains blocked.
 
 | Platform    | Detection | Growth Mode | Migration   |
 | ----------- | --------- | ----------- | ----------- |
 | Codex       | Stable    | Stable      | Stable      |
-| Claude Code | Stable    | Blocked     | Unavailable |
+| Claude Code | Stable    | Stable      | Unavailable |
 | Gemini CLI  | Stable    | Stable      | Unavailable |
 | Copilot CLI | Stable    | Blocked     | Unavailable |
 
-Do not release or implement a reduced two-platform v0.6.0 from this matrix.
+Do not release the full four-platform v0.6.0 from this matrix.
 
 ## Production implementation plan
 
-Implementation starts only after both live gates close and the user approves
-the final four-Stable Growth matrix.
+Implementation starts only after the remaining Copilot live gate closes and
+the user approves the final four-Stable Growth matrix.
 
 Public boundaries and shared models:
 
@@ -429,8 +477,8 @@ persistence, no network or Git writes in hooks, authoritative final scan,
 Braid-owned finite retries, structural ownership-bounded JSON edits, no global
 config/trust/auth changes, and unchanged Codex migration behavior.
 
-After both gates close, run one architecture review, one safety/correctness
-review, then the required build, typecheck, lint, provider contract tests,
-existing Codex Growth/migration/recovery regressions, installer tests, and
-distribution validation. Stop for release approval; do not push, tag, or
-publish automatically.
+After the Copilot gate closes, run one architecture review, one
+safety/correctness review, then the required build, typecheck, lint, provider
+contract tests, existing Codex Growth/migration/recovery regressions, installer
+tests, and distribution validation. Stop for release approval; do not push,
+tag, or publish automatically.
