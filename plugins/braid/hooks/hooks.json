@@ -1,0 +1,54 @@
+{
+  "description": "Run Braid Growth Mode across the Claude coding lifecycle.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/run-growth-hook.sh\"",
+            "statusMessage": "Capturing Braid architecture baseline",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/run-growth-hook.sh\"",
+            "statusMessage": "Refreshing Braid Growth Mode context",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/run-growth-hook.sh\"",
+            "statusMessage": "Checking architecture changes with Braid",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/run-growth-hook.sh\"",
+            "statusMessage": "Running Braid final architecture check",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

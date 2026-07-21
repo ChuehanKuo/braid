@@ -8,10 +8,12 @@ import {
   growthContextCommand,
   growthFinalCommand,
   growthHookCommand,
+  growthInstallClaudeCommand,
   growthInstallCodexCommand,
   growthResetCommand,
   growthStatusCommand,
   growthUninstallCodexCommand,
+  growthUninstallClaudeCommand,
 } from "./commands/growth.js";
 import { proposeCommand } from "./commands/propose.js";
 import {
@@ -191,6 +193,7 @@ growth
   .option("--path <path>", "target project", ".")
   .option("--session <id>", "Growth Mode session ID")
   .option("--codex <executable>", "Codex executable", "codex")
+  .option("--claude <executable>", "Claude executable", "claude")
   .option("--json", "write status JSON")
   .action(growthStatusCommand);
 
@@ -208,6 +211,16 @@ const growthInstall = growth
   .description("Install repository-local Growth Mode integration");
 
 growthInstall
+  .command("claude")
+  .description("Merge Braid-owned handlers into repository Claude settings")
+  .option("--path <path>", "target project", ".")
+  .option("--claude <executable>", "Claude executable", "claude")
+  .option("--dry-run", "show the intended installation without writing")
+  .option("--confirm", "confirm repository-local hook installation")
+  .option("--json", "write installation JSON")
+  .action(growthInstallClaudeCommand);
+
+growthInstall
   .command("codex")
   .description("Merge Braid-owned handlers into repository Codex hooks")
   .option("--path <path>", "target project", ".")
@@ -222,6 +235,14 @@ const growthUninstall = growth
   .description("Remove repository-local Growth Mode integration");
 
 growthUninstall
+  .command("claude")
+  .description("Remove only Braid-owned Claude hook handlers")
+  .option("--path <path>", "target project", ".")
+  .option("--dry-run", "show the intended removal without writing")
+  .option("--json", "write uninstall JSON")
+  .action(growthUninstallClaudeCommand);
+
+growthUninstall
   .command("codex")
   .description("Remove only Braid-owned Codex hook handlers")
   .option("--path <path>", "target project", ".")
@@ -231,7 +252,9 @@ growthUninstall
 
 growth
   .command("hook", { hidden: true })
-  .description("Internal Codex command-hook entrypoint")
+  .description("Internal host command-hook entrypoint")
+  .option("--host <host>", "hook host", "codex")
+  .option("--source <source>", "host adapter source")
   .action(growthHookCommand);
 
 program.exitOverride();

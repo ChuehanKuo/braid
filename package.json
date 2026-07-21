@@ -18,6 +18,7 @@
     "format": "prettier --write .",
     "brand:render": "node scripts/render-brand-assets.mjs",
     "brand:verify": "node scripts/verify-brand-assets.mjs",
+    "plugin:verify": "node scripts/verify-claude-plugin.mjs",
     "distribution:build": "pnpm build && node scripts/build-distribution.mjs",
     "distribution:verify": "node scripts/verify-distribution.mjs",
     "test:installer": "node scripts/test-installation.mjs",

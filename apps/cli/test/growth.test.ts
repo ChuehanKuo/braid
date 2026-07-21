@@ -10,6 +10,7 @@ import {
   growthCheckCommand,
   growthContextCommand,
   growthFinalCommand,
+  growthHookCommand,
   growthResetCommand,
 } from "../src/commands/growth.js";
 
@@ -62,6 +63,45 @@ afterEach(async () => {
 });
 
 describe("Growth Mode CLI commands", () => {
+  it("routes the hidden hook bridge by host and preserves Codex default behavior", async () => {
+    const runCodexHook = vi.fn(async () => undefined);
+    const runClaudeHook = vi.fn(async () => undefined);
+
+    await growthHookCommand({ runCodexHook, runClaudeHook });
+    expect(runCodexHook).toHaveBeenCalledOnce();
+    expect(runClaudeHook).not.toHaveBeenCalled();
+
+    await growthHookCommand({
+      host: "claude",
+      source: "manual",
+      runCodexHook,
+      runClaudeHook,
+      probeClaudeHook: vi.fn(async () => ({ supported: true })),
+    });
+    expect(runClaudeHook).toHaveBeenCalledWith({ source: "manual" });
+
+    await expect(
+      growthHookCommand({
+        host: "unknown",
+        runCodexHook,
+        runClaudeHook,
+      }),
+    ).rejects.toThrow("Unsupported Growth Mode hook host");
+
+    const writeClaudeFailOpen = vi.fn(async () => undefined);
+    await growthHookCommand({
+      host: "claude",
+      source: "native-plugin",
+      runClaudeHook,
+      probeClaudeHook: vi.fn(async () => ({
+        supported: false,
+        reason: "unverified version",
+      })),
+      writeClaudeFailOpen,
+    });
+    expect(writeClaudeFailOpen).toHaveBeenCalledWith("unverified version");
+  });
+
   it("runs one baseline, safe check, final, and confirmed reset without source or Git mutation", async () => {
     const root = await fixture();
     const sourcePath = path.join(
