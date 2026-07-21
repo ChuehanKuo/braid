@@ -1,6 +1,6 @@
 # Growth Mode
 
-Growth Mode is Braid's live architecture feedback loop for ordinary Codex coding sessions. It records
+Growth Mode is Braid's live architecture feedback loop for supported Claude Code and Codex coding sessions. It records
 the repository architecture visible at the beginning of one session, compares later working-tree
 states with that baseline, and reports only supported regressions introduced during the session.
 
@@ -74,9 +74,10 @@ focuses findings on changed files, importers, participating cycle files, import 
 module metrics. It does not run builds, tests, linters, dependency installation, migration execution,
 or Codex after each tool call.
 
-## Codex lifecycle
+## Agent lifecycle
 
-The repository-local adapter uses the installed Codex command-hook protocol:
+Claude Code and Codex adapters translate the same four lifecycle concepts into the shared Growth Mode
+engine:
 
 | Event              | Braid behavior                                                                                        |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
@@ -86,17 +87,36 @@ The repository-local adapter uses the installed Codex command-hook protocol:
 | `Stop`             | Reuse or compute the latest result; allow pass/warn, or continue once for a unique block fingerprint. |
 
 For a configured block, the first Stop attempt returns the exact finding and corrective guidance as a
-Codex continuation reason. Each unique diff-and-finding fingerprint is continued no more than
+host-native blocking reason. Each unique diff-and-finding fingerprint is continued no more than
 `stopBlocksPerFingerprint` times. A repeated unchanged Stop is allowed with a visible unresolved
 warning, and the ephemeral state records that outcome. A source change creates a new evaluation and
 retry identity. This prevents an infinite Stop loop.
 
-Codex requires repository-local command hooks to be reviewed and trusted. Installation cannot grant
-that trust; inspect and approve the exact definitions with `/hooks`. `PostToolUse` is not a complete
+Repository-local command hooks must be reviewed and trusted. Installation cannot grant that trust;
+inspect the exact definitions with `/hooks`. `PostToolUse` is not a complete
 interception boundary for every possible tool path. Braid therefore reads Git and current files again
 at later supported lifecycle events, including `Stop`.
 
-## CLI and installation
+## Claude Code native plugin
+
+The preferred Claude integration is the repository marketplace plugin:
+
+```text
+/plugin marketplace add ting10688/Braid
+/plugin install braid@braid
+/braid:setup
+```
+
+It packages hook declarations and `/braid:setup`, `/braid:status`, `/braid:check`, and `/braid:help`.
+The plugin contains no architecture engine and requires `braid` on `PATH`. It never downloads
+software, initializes a repository, or silently enables Growth Mode. Claude Code must be restarted or
+`/reload-plugins` must be run after hook updates.
+
+Native hooks identify themselves as `native-plugin`. Support is exact-version scoped to local Claude
+Code 2.1.215 on the tested Darwin arm64 environment; other versions fail open and are not advertised as
+compatible. Claude web and cloud-agent behavior is outside this scope.
+
+## Repository-local installers
 
 The normal workflow is:
 
@@ -121,6 +141,29 @@ $ braid growth uninstall codex
 
 The uninstall is idempotent and preserves every unrelated hook. It does not remove user trust records.
 
+When the Claude marketplace cannot be used, install the manual fallback into the verified
+repository-local `.claude/settings.local.json` surface:
+
+```console
+$ braid growth install claude --dry-run
+$ braid growth install claude --confirm
+$ braid growth uninstall claude
+```
+
+The manual installer requires an exact Claude Code 2.1.215 capability match, shows the intended diff,
+requires confirmation, validates JSON, writes atomically, creates a content-addressed backup, and
+preserves unrelated settings. Linked worktrees resolve this file through the main checkout, matching
+Claude Code's repository-local settings behavior. It never inspects authentication or writes global
+Claude settings.
+
+If native and manual adapters coexist, native hooks are authoritative. Worktree-scoped state suppresses
+duplicate evaluation using the host, session, event, worktree, and Growth report fingerprint. Status
+reports both installations and recommends:
+
+```console
+$ braid growth uninstall claude
+```
+
 Other commands accept `--path` and, where session state matters, `--session`:
 
 ```console
@@ -134,7 +177,7 @@ $ braid growth reset --session my-session --confirm my-session
 
 `context` prints agent-ready guidance. `check` evaluates the current state. `final` applies the same
 finite policy as `Stop` without editing the repository. `status` includes baseline/cache state,
-installation ownership, and detected Codex capabilities. `reset` requires the exact session ID and
+installation ownership, and detected host capabilities without printing the raw session ID. `reset` requires the exact session ID and
 removes only that session's Braid-owned ephemeral state.
 
 ## Example feedback loop
@@ -172,8 +215,10 @@ suggestions per finding.
 
 The hook command accepts one validated JSON payload on stdin, writes exactly one JSON response on
 stdout, and sends diagnostics to stderr. It does not evaluate hook fields as shell commands or use the
-network. A malformed payload, missing repository, or analyzer failure fails open so the Codex session
-can continue, but returns a visible warning and never fabricates an architectural `pass` report.
+network. A malformed payload, missing repository, incompatible host, unavailable CLI, timeout, or
+analyzer failure fails open so the agent session can continue and never fabricates an architectural
+`pass` report. Claude fail-open responses are deliberately silent protocol objects; diagnostics remain
+on stderr.
 
 The repository owner, Braid configuration, Codex executable, Git, Node.js, operating system, and
 filesystem are trusted. Growth Mode is architecture feedback and a completion guard, not an OS or
@@ -185,8 +230,9 @@ adversarial-repository security boundary.
 - A full deterministic scan runs after a relevant change; Growth Mode v1 is not an incremental compiler.
 - A staged blob that differs from its working-tree file invalidates the cache, but v1 analyzes the
   current working-tree file rather than constructing a separate index-only source tree.
-- `PostToolUse` coverage follows the installed Codex hook implementation and is not universal.
+- `PostToolUse` coverage follows the installed host hook implementation and is not universal; the
+  final scan remains authoritative.
 - Warnings and blockers are limited to configured v1 rules; no general boundary policy is inferred.
 - Unresolved or ambiguous static evidence warns instead of proving a hard violation.
 - Wall-clock measurements are informational and are not CI blockers.
-- Hook installation is repository-local and still requires explicit Codex trust review.
+- Manual hook installation is repository-local and still requires explicit host trust review.

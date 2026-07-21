@@ -28,6 +28,46 @@ braid --version
 braid --help
 ```
 
+## Claude Code native plugin
+
+Braid's preferred Claude integration is a separate marketplace plugin that calls the installed
+standalone CLI. With local Claude Code 2.1.215:
+
+```text
+/plugin marketplace add ting10688/Braid
+/plugin install braid@braid
+/braid:setup
+```
+
+Equivalent non-interactive management commands are:
+
+```bash
+claude plugin marketplace add ting10688/Braid
+claude plugin install braid@braid
+claude plugin list --json
+claude plugin details braid@braid
+```
+
+The plugin installs enabled by default. Start a fresh session, restart Claude Code, or run
+`/reload-plugins` after changing its hooks. The plugin requires `braid` on `PATH`; it never downloads
+Braid or runs an installer. Project initialization and `growthMode.enabled: true` remain explicit.
+
+Use the repository-local manual fallback only when marketplace installation is unavailable:
+
+```bash
+braid growth install claude --dry-run
+braid growth install claude --confirm
+```
+
+The dry run prints the exact intended JSON change. Confirmation merges only Braid-owned handlers into
+`.claude/settings.local.json`, preserves unrelated settings, and creates a backup when modifying an
+existing file. Remove only those handlers with `braid growth uninstall claude`.
+
+Do not install both paths. If both are present, the native plugin remains authoritative, status shows
+the duplicate, and the remediation is `braid growth uninstall claude`. See
+[native agent plugins](native-agent-plugins.md) for lifecycle, commands, support scope, and
+troubleshooting.
+
 ## Requirements and supported platforms
 
 The installer supports:
@@ -202,12 +242,14 @@ manifest. Unknown binaries, unrecorded version directories, ambiguous paths, and
 content are preserved. Repeated uninstall is safe; `--keep-versions` preserves recorded version
 directories, and `--keep-path` preserves the owned PATH block.
 
-Project-local `.braid` state and repository-local `.codex/hooks.json` are never removed. Node.js, Git,
-Codex, pnpm, and unrelated executables are untouched. The uninstaller does not search the home
-directory for projects.
+Project-local `.braid` state and repository-local `.codex/hooks.json` or
+`.claude/settings.local.json` are never removed. Node.js, Git, Claude Code, Codex, pnpm, and unrelated
+executables are untouched. The uninstaller does not search the home directory for projects.
 
 Repository-local Growth Mode hooks are not removed automatically. Run
-`braid growth uninstall codex` inside each affected repository before uninstalling Braid when desired.
+`braid growth uninstall codex` or `braid growth uninstall claude` inside each affected repository
+before uninstalling Braid when desired. Remove the native plugin separately with
+`claude plugin uninstall braid@braid`.
 
 ## Manual archive use
 
@@ -288,3 +330,5 @@ configuration, execute a second unverified installer, or scan unrelated user dat
   previous-release fixtures cover the upgrade and explicit-downgrade transaction itself.
 - Package-manager installation channels and shell completion are not provided.
 - The uninstaller intentionally does not discover or remove repository-local Growth Mode hooks.
+- Native Claude plugin support is scoped to the authenticated local Claude Code 2.1.215 contract
+  tested on Darwin arm64. Claude web, cloud agents, and other CLI versions are not claimed.

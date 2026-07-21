@@ -5,8 +5,8 @@
 <h1 align="center">Braid</h1>
 
 <p align="center">
-  <strong>Keep architecture healthy while Codex writes code.</strong><br>
-  Braid detects architecture regressions inside a live Codex session and safely executes explicitly approved migrations in isolation.
+  <strong>Keep architecture healthy while Claude Code or Codex writes code.</strong><br>
+  Braid detects architecture regressions inside supported local agent sessions and safely executes explicitly approved migrations in isolation.
 </p>
 
 <p align="center">
@@ -87,6 +87,35 @@ braid --help
 See the [installation guide](docs/installation.md) for version pinning, custom directories, PATH
 behavior, upgrades, explicit downgrades, uninstall, checksum verification, manual archive use, and
 source-development setup.
+
+### Claude Code native plugin
+
+After installing the standalone Braid CLI, add the Braid marketplace and install the native plugin in
+Claude Code 2.1.215:
+
+```text
+/plugin marketplace add ting10688/Braid
+/plugin install braid@braid
+/braid:setup
+```
+
+Then initialize the repository with `braid init` when needed and explicitly set
+`growthMode.enabled: true` in `.braid/architecture.yaml`. Installing the plugin never downloads the
+Braid CLI, initializes a project, or enables Growth Mode. Restart Claude Code or run
+`/reload-plugins` after changing plugin hooks.
+
+The native plugin is preferred. A repository-local manual fallback is available when marketplace
+installation is not possible:
+
+```bash
+braid growth install claude --dry-run
+braid growth install claude --confirm
+```
+
+Support is currently scoped to the authenticated local Claude Code 2.1.215 CLI contract tested on
+Darwin arm64. Claude web and cloud-agent environments are not claimed. See
+[native agent plugins](docs/native-agent-plugins.md) for setup, duplicate handling, removal, and
+limitations.
 
 ### Quick judge demo
 
@@ -264,8 +293,8 @@ Even an actionable suggestion leaves the original proposal non-executable. To pr
 revised proposal containing the approved companion symbols, then explicitly approve that revised
 proposal's own ID through the normal migration flow.
 
-Install the repository-local Codex Growth Mode adapter after enabling `growthMode` in the project
-configuration:
+Install a supported Growth Mode adapter after enabling `growthMode` in the project configuration.
+Claude users should prefer the native plugin above; Codex uses its repository-local adapter:
 
 ```bash
 braid growth install codex --dry-run
@@ -276,6 +305,14 @@ braid growth final --session my-session
 braid growth status --session my-session
 braid growth reset --session my-session --confirm my-session
 braid growth uninstall codex
+```
+
+The Claude manual fallback uses parallel commands:
+
+```bash
+braid growth install claude --dry-run
+braid growth install claude --confirm
+braid growth uninstall claude
 ```
 
 Codex requires the exact hook definitions to be reviewed with `/hooks`. Growth Mode compares the
@@ -344,7 +381,7 @@ threshold that marks the order service as oversized. Its 24 behavior tests all p
   readiness and advisory repair evaluation, durable recovery, validation, architecture comparison, and
   candidate commits.
 - `packages/guard`: session baselines, Git/source fingerprints, architecture comparison, bounded
-  feedback, ephemeral state, and the Codex hook adapter.
+  feedback, ephemeral state, and the Claude Code and Codex hook adapters.
 - `packages/store`: atomic JSON project, snapshot, proposal, execution-record, and immutable recovery
   journal persistence.
 - `packages/benchmark`: independent fixture isolation, repeated evaluation, regression policies, baselines,
@@ -397,11 +434,11 @@ See [architecture](docs/architecture.md), [proposal behavior](docs/proposals.md)
 
 ## Status
 
-Braid v0.5.1 adds verified installation and owned lifecycle management for the existing standalone
-distribution. Phase 4 durable migration recovery, Growth Mode v1, deterministic proposal repair
-suggestions, execution readiness, and safe isolated extraction behavior are unchanged. Recovery
-journals use schema version `1.0.0`; Growth reports and their Codex adapter protocol remain at `1.0.0`,
-while snapshot, proposal, execution-plan, and execution-record schemas remain version 1.
+The v0.6 development line adds a Claude Code 2.1.215 native marketplace plugin, a Claude host adapter
+over the existing Growth Mode engine, and an ownership-safe manual fallback while preserving Codex
+behavior. Recovery journals use schema version `1.0.0`; Growth reports and host adapter protocols
+remain at `1.0.0`, while snapshot, proposal, execution-plan, and execution-record schemas remain
+version 1.
 
 ## License
 

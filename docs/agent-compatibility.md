@@ -197,6 +197,18 @@ installed-plugin registry, and marketplace registry were unchanged. No raw
 payload, prompt, response, transcript, session identifier, or authentication
 material was retained.
 
+The redacted field-shape probe found one adapter-relevant difference from the
+turn payloads: 2.1.215 `SessionStart` omits `permission_mode`, while
+`UserPromptSubmit`, `PostToolUse`, and `Stop` include it. The production schema
+therefore separates session fields from turn fields rather than treating the
+lazy prompt fallback as proof that SessionStart initialized correctly.
+
+During later verification the active `latest` symlink advanced to 2.1.216. The
+retained 2.1.215 executable remained available for the exact-version lifecycle
+and installer tests. Braid rejected 2.1.216 as outside the verified contract and
+returned the empty Claude fail-open response; no compatibility range was
+inferred from the adjacent version.
+
 Classification: `verified` for Claude Code 2.1.215 on Darwin arm64,
 non-interactive `-p`, native development plugin hooks. Production support must
 remain scoped to this exact Claude Code version until another version completes
