@@ -10,6 +10,5 @@
   "repository": "https://github.com/ting10688/braid",
   "license": "MIT",
   "keywords": ["architecture", "growth-mode", "claude-code"],
-  "commands": "./commands/",
-  "hooks": "./hooks/hooks.json"
+  "commands": "./commands/"
 }

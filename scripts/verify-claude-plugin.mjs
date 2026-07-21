@@ -36,6 +36,10 @@ const hooksDocument = await readJson(
 
 if (marketplace.name !== "braid") fail("marketplace name is not braid");
 if (manifest.name !== "braid") fail("plugin name is not braid");
+// Claude auto-loads hooks/hooks.json; manifest.hooks is only for extra files.
+if (manifest.hooks !== undefined) {
+  fail("plugin manifest must not redeclare auto-discovered hooks/hooks.json");
+}
 for (const [label, version] of [
   ["marketplace", marketplace.version],
   ["plugin", manifest.version],

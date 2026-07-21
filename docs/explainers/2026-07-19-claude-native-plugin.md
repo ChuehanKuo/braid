@@ -68,6 +68,11 @@ an installer, access the network, write plugin data, or leave a child process be
 instead of embedding a long shell expression in four manifest entries so quoting and failure behavior
 have one reviewed implementation.
 
+Claude auto-discovers the standard `hooks/hooks.json` path. The plugin manifest therefore does not
+also declare that file: `manifest.hooks` is reserved for additional hook files, and listing the
+standard path there makes Claude load every handler twice. The package validator and regression test
+enforce this single-registration rule.
+
 ## Exact-version compatibility
 
 The installed CLI changed from 2.1.212 during earlier settings-hook research to 2.1.215 during native

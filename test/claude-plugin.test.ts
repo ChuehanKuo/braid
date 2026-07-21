@@ -33,6 +33,8 @@ describe("Claude native plugin package", () => {
     expect(marketplace.version).toBe(packageJson.version);
     expect(manifest.name).toBe("braid");
     expect(manifest.version).toBe(packageJson.version);
+    // Claude auto-loads hooks/hooks.json; declaring it again duplicates every hook.
+    expect(manifest.hooks).toBeUndefined();
     expect(marketplace.plugins).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
